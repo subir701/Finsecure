@@ -18,14 +18,31 @@ repositories {
 }
 
 dependencies {
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-	implementation 'org.springframework.boot:spring-boot-starter-security'
-	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	//Web
 	implementation 'org.springframework.boot:spring-boot-starter-webmvc'
-	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
-	compileOnly 'org.projectlombok:lombok'
+
+	//Database
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
 	runtimeOnly 'org.postgresql:postgresql'
+
+	//Security
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+	implementation 'io.jsonwebtoken:jjwt-api:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.5'
+
+	//Validation
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+	//Swagger AI
+	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.2'
+
+	//Lombok
+	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
+
+	//Testing
 	testImplementation 'org.springframework.boot:spring-boot-starter-data-jpa-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
 	testImplementation 'org.springframework.boot:spring-boot-starter-validation-test'
@@ -33,6 +50,7 @@ dependencies {
 	testCompileOnly 'org.projectlombok:lombok'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	testAnnotationProcessor 'org.projectlombok:lombok'
+
 }
 
 tasks.named('test') {
