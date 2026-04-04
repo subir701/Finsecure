@@ -16,6 +16,6 @@ public interface RecordService {
     Page<RecordResponse> getRecords(Authentication authentication, Category category, RecordType recordType, LocalDateTime from, LocalDateTime to, int page, int size);
     RecordResponse getById(UUID recordId, Authentication authentication);
     RecordResponse update(UUID recordId, RecordRequest request, Authentication authentication);
-    void delelte(UUID recordId, Authentication authentication);
+    void delete(UUID recordId, Authentication authentication);
 
 }

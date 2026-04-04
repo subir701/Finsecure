@@ -31,22 +31,29 @@ public class DashboardServiceImpl implements DashboardService{
 
     @Override
     public DashboardSummaryResponse getSummary(Authentication auth) {
+        log.info("Building dashboard summary for user: {}", auth.getName());
+
         UUID userId = getUser(auth).getUserId();
 
         BigDecimal totalIncome = recordRepository.sumIncomeByUser(userId);
         BigDecimal totalExpenses = recordRepository.sumExpenseByUser(userId);
         BigDecimal netBalance = totalIncome.subtract(totalExpenses);
 
+        log.debug("Summary totals: user={}, income={}, expenses={}, net={}",
+                auth.getName(), totalIncome, totalExpenses, netBalance);
+
         Map<String, BigDecimal> expensesByCategory = buildCategoryMap(userId,RecordType.EXPENSE);
         Map<String, BigDecimal> incomeByCategory = buildCategoryMap(userId, RecordType.INCOME);
 
         List<DashboardSummaryResponse.MonthlyTrend> monthlyTrends = buildMonthlyTrends(userId);
+        log.debug("Monthly trends built: {} months of data for user={}", monthlyTrends.size(), auth.getName());
 
         List<RecordResponse> recentActivity = recordRepository
                 .findTop10ByUserUserIdOrderByCreatedAtDesc(userId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
+        log.info("Dashboard summary built successfully for user={}", auth.getName());
 
         return new DashboardSummaryResponse(totalIncome,totalExpenses,netBalance,expensesByCategory,incomeByCategory,monthlyTrends,recentActivity);
     }
@@ -101,6 +108,7 @@ public class DashboardServiceImpl implements DashboardService{
                 record.getCategory(),
                 record.getRecordType(),
                 record.getNote(),
+                record.getTransactionDate(),
                 record.getCreatedAt()
         );
     }

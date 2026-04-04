@@ -69,11 +69,11 @@ public interface RecordRepository extends JpaRepository<Record, UUID> {
 
     @Query("""
             SELECT r FROM Record r
-            WHERE (:category IS NULL OR r.category = :category)
-            AND (:recordType IS NULL OR r.recordType = :recordType)
-            AND (:from IS NULL OR r.createdAt >= :from)
-            AND (:to IS NULL OR r.createdAt <= :to)
-            ORDER BY r.createdAt DESC
+                WHERE (:category IS NULL OR r.category = :category)
+                AND (:recordType IS NULL OR r.recordType = :recordType)
+                AND (cast(:from as localdatetime) IS NULL OR r.createdAt >= :from)
+                AND (cast(:to as localdatetime) IS NULL OR r.createdAt <= :to)
+                ORDER BY r.createdAt DESC
             """)
     Page<Record> findAllByFilters(
             @Param("category") Category category,

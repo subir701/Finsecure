@@ -29,30 +29,33 @@ public class AuthServiceImpl implements AuthService{
     @Override
     public String register(UserRegisterRequest request) {
 
-        log.info("Check email is already is taken or not");
+        log.info("Registration attempt for email: {}", request.email());
 
         if(userRepository.existsByEmail(request.email())){
-            log.error("Email is already registered {}",request.email());
+            log.warn("Registration failed - email already exists: {}", request.email());
             throw ApiException.conflict("Email already registered");
         }
 
-        log.info("Creating User object");
+        Role assignedRole = userRepository.count() == 0 ? Role.ADMIN : Role.VIEWER;
 
         User user = User.builder()
                 .username(request.username())
                 .email(request.email())
                 .password(passwordEncoder.encode(request.password()))
-                .role(Role.VIEWER)
+                .role(assignedRole)
                 .build();
 
-        log.info("Storing user object");
         userRepository.save(user);
+
+        log.info("User registered successfully: email={}, role={}", user.getEmail(), user.getRole());
 
         return "Registration Successful";
     }
 
     @Override
     public LoginResponse login(LoginRequest request) {
+        log.info("Login attempt for email: {}", request.email());
+
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(request.email(),request.password())
         );
@@ -62,6 +65,10 @@ public class AuthServiceImpl implements AuthService{
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
 
+        log.info("Login successful: email={}, role={}", user.getEmail(), user.getRole());
+
         return new LoginResponse(token,user.getEmail(),user.getRole().name(),"Login Successful");
     }
+
+
 }
