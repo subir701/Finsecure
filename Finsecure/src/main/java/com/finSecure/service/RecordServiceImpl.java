@@ -34,6 +34,10 @@ public class RecordServiceImpl implements RecordService{
     @Transactional
     @Override
     public RecordResponse create(RecordRequest request, Authentication auth) {
+
+        log.info("Creating record: user={}, type={}, category={}, amount={}",
+                auth.getName(), request.recordType(), request.category(), request.amount());
+
         User user = getUser(auth);
 
         Record record = Record.builder()
@@ -41,16 +45,24 @@ public class RecordServiceImpl implements RecordService{
                 .category(request.category())
                 .recordType(request.recordType())
                 .note(request.note())
+                .transactionDate(request.transactionDate())
                 .user(user)
                 .build();
 
-        return toResponse(record);
+        Record saved = recordRepository.save(record);
+
+        log.info("Record created: id={}, user={}", saved.getRecordId(), auth.getName());
+
+        return toResponse(saved);
     }
 
     @Override
     public Page<RecordResponse> getRecords(Authentication authentication, Category category, RecordType recordType, LocalDateTime from, LocalDateTime to, int page, int size) {
         Pageable pageable = PageRequest.of(page,size, Sort.by("createdAt").descending());
         boolean isAdmin = isAdmin(authentication);
+
+        log.debug("Fetching records: user={}, isAdmin={}, category={}, recordType={}, page={}, size={}",
+                authentication.getName(), isAdmin, category, recordType, page, size);
 
         if(isAdmin){
             return recordRepository
@@ -66,6 +78,8 @@ public class RecordServiceImpl implements RecordService{
 
     @Override
     public RecordResponse getById(UUID recordId, Authentication authentication) {
+        log.debug("Fetching record by id: id={}, user={}", recordId, authentication.getName());
+
         Record record = findRecord(recordId);
         assertAccess(record, authentication);
         return toResponse(record);
@@ -74,6 +88,8 @@ public class RecordServiceImpl implements RecordService{
     @Transactional
     @Override
     public RecordResponse update(UUID recordId, RecordRequest request, Authentication authentication) {
+        log.info("Updating record: id={}, user={}", recordId, authentication.getName());
+
         Record record = findRecord(recordId);
         assertOwnerOrAdmin(record, authentication);
 
@@ -81,13 +97,15 @@ public class RecordServiceImpl implements RecordService{
         record.setCategory(request.category());
         record.setRecordType(request.recordType());
         record.setNote(request.note());
+        record.setTransactionDate(request.transactionDate());
 
         return toResponse(recordRepository.save(record));
     }
 
     @Transactional
     @Override
-    public void delelte(UUID recordId, Authentication authentication) {
+    public void delete(UUID recordId, Authentication authentication) {
+        log.info("Deleting record: id={}, requestedBy={}", recordId, authentication.getName());
         Record record = findRecord(recordId);
         assertOwnerOrAdmin(record, authentication);
         recordRepository.delete(record);
@@ -112,6 +130,8 @@ public class RecordServiceImpl implements RecordService{
     /** Viewer and Analyst can read all records scoped to them; Admin can read all. */
     private void assertAccess(Record record, Authentication auth) {
         if (!isAdmin(auth) && !record.getUser().getEmail().equals(auth.getName())) {
+            log.warn("Access denied: user={} attempted to read record={} owned by {}",
+                    auth.getName(), record.getRecordId(), record.getUser().getEmail());
             throw ApiException.forbidden("You don't have access to this record");
         }
     }
@@ -119,6 +139,8 @@ public class RecordServiceImpl implements RecordService{
     /** Only the owner or an Admin may mutate a record. */
     private void assertOwnerOrAdmin(Record record, Authentication auth) {
         if (!isAdmin(auth) && !record.getUser().getEmail().equals(auth.getName())) {
+            log.warn("Access denied: user={} attempted to modify record={} owned by {}",
+                    auth.getName(), record.getRecordId(), record.getUser().getEmail());
             throw ApiException.forbidden("Only the record owner or an Admin can modify this record");
         }
     }
@@ -130,6 +152,7 @@ public class RecordServiceImpl implements RecordService{
                 record.getCategory(),
                 record.getRecordType(),
                 record.getNote(),
+                record.getTransactionDate(),
                 record.getCreatedAt()
         );
     }

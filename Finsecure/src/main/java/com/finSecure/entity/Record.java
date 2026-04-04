@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -36,6 +37,9 @@ public class Record {
     @Column(nullable = false)
     private String note;
 
+    @Column(nullable = false)
+    private LocalDate transactionDate;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -43,5 +47,8 @@ public class Record {
     @PrePersist
     private void prePersist(){
         this.createdAt = LocalDateTime.now();
+        if(this.transactionDate == null){
+            this.transactionDate = LocalDate.now();
+        }
     }
 }

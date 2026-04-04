@@ -5,8 +5,10 @@ import com.finSecure.entity.RecordType;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 
 public record RecordRequest(
         @NotNull(message = "Amount is required")
@@ -20,5 +22,8 @@ public record RecordRequest(
         RecordType recordType,
 
         @NotBlank(message = "Note is required")
-        String note
+        String note,
+
+        @PastOrPresent(message = "Transaction date cannot be in the future")
+        LocalDate transactionDate
 ) {}
