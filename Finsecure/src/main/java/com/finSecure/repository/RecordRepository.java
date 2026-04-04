@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -22,16 +23,16 @@ public interface RecordRepository extends JpaRepository<Record, UUID> {
             SELECT r FROM Record r WHERE r.user.userId = :userId
             AND (:category IS NULL OR r.category = :category)
             AND (:recordType IS NULL OR r.recordType = :recordType)
-            AND (:from IS NULL OR r.createdAt >= :from)
-            AND (:to IS NULL OR r.createdAt <= :to)
-            ORDER BY r.createdAt DESC
+            AND (cast(:from as localdate) IS NULL OR r.transactionDate >= :from)
+            AND (cast(:to as localdate) IS NULL OR r.transactionDate <= :to)
+            ORDER BY r.transactionDate DESC
             """)
     Page<Record> findByFilters(
             @Param("userId") UUID userId,
             @Param("category") Category category,
             @Param("recordType") RecordType recordType,
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to,
             Pageable pageable
             );
 
@@ -50,20 +51,20 @@ public interface RecordRepository extends JpaRepository<Record, UUID> {
     List<Object[]> sumAmountByCategoryAndType(@Param("userId") UUID userId, @Param("recordType") RecordType recordType);
 
     @Query("""
-            SELECT FUNCTION('TO_CHAR', r.createdAt, 'YYYY-MM') AS month,
+            SELECT FUNCTION('TO_CHAR', r.transactionDate, 'YYYY-MM') AS month,
                    r.recordType,
                    COALESCE(SUM(r.amount), 0)
             FROM Record r
             WHERE r.user.userId = :userId
-            AND r.createdAt >= :from
-            GROUP BY FUNCTION('TO_CHAR', r.createdAt, 'YYYY-MM'), r.recordType
+            AND r.transactionDate >= :from
+            GROUP BY FUNCTION('TO_CHAR', r.transactionDate, 'YYYY-MM'), r.recordType
             ORDER BY month ASC
             """)
     List<Object[]> monthlyTrends(@Param("userId") UUID userId, @Param("from") LocalDateTime from);
 
     // ── Recent activity ───────────────────────────────────────────────────────
 
-    List<Record> findTop10ByUserUserIdOrderByCreatedAtDesc(UUID userId);
+    List<Record> findTop10ByUserUserIdOrderBytransactionDateDesc(UUID userId);
 
     // ── Admin: all records with filters ──────────────────────────────────────
 
@@ -71,15 +72,15 @@ public interface RecordRepository extends JpaRepository<Record, UUID> {
             SELECT r FROM Record r
                 WHERE (:category IS NULL OR r.category = :category)
                 AND (:recordType IS NULL OR r.recordType = :recordType)
-                AND (cast(:from as localdatetime) IS NULL OR r.createdAt >= :from)
-                AND (cast(:to as localdatetime) IS NULL OR r.createdAt <= :to)
-                ORDER BY r.createdAt DESC
+                AND (cast(:from as localdate) IS NULL OR r.transactionDate >= :from)
+                AND (cast(:to as localdate) IS NULL OR r.transactionDate <= :to)
+                ORDER BY r.transactionDate DESC
             """)
     Page<Record> findAllByFilters(
             @Param("category") Category category,
             @Param("recordType") RecordType recordType,
-            @Param("from") LocalDateTime from,
-            @Param("to") LocalDateTime to,
+            @Param("from") LocalDate from,
+            @Param("to") LocalDate to,
             Pageable pageable
     );
 }

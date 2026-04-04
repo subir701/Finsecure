@@ -20,6 +20,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -57,7 +58,7 @@ public class RecordServiceImpl implements RecordService{
     }
 
     @Override
-    public Page<RecordResponse> getRecords(Authentication authentication, Category category, RecordType recordType, LocalDateTime from, LocalDateTime to, int page, int size) {
+    public Page<RecordResponse> getRecords(Authentication authentication, Category category, RecordType recordType, LocalDate from, LocalDate to, int page, int size) {
         Pageable pageable = PageRequest.of(page,size, Sort.by("createdAt").descending());
         boolean isAdmin = isAdmin(authentication);
 
