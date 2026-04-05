@@ -60,11 +60,11 @@ public interface RecordRepository extends JpaRepository<Record, UUID> {
             GROUP BY FUNCTION('TO_CHAR', r.transactionDate, 'YYYY-MM'), r.recordType
             ORDER BY month ASC
             """)
-    List<Object[]> monthlyTrends(@Param("userId") UUID userId, @Param("from") LocalDateTime from);
+    List<Object[]> monthlyTrends(@Param("userId") UUID userId, @Param("from") LocalDate from);
 
     // ── Recent activity ───────────────────────────────────────────────────────
 
-    List<Record> findTop10ByUserUserIdOrderBytransactionDateDesc(UUID userId);
+    List<Record> findTop10ByUserUserIdOrderByTransactionDateDesc(UUID userId);
 
     // ── Admin: all records with filters ──────────────────────────────────────
 
@@ -83,4 +83,30 @@ public interface RecordRepository extends JpaRepository<Record, UUID> {
             @Param("to") LocalDate to,
             Pageable pageable
     );
+
+    @Query("SELECT COALESCE(SUM(r.amount),0) FROM Record r WHERE r.recordType = 'INCOME'")
+    BigDecimal sumTotalIncome();
+
+    @Query("SELECT COALESCE(SUM(r.amount),0) FROM Record r WHERE r.recordType = 'EXPENSE'")
+    BigDecimal sumTotalExpense();
+
+    @Query("""
+            SELECT r.category, COALESCE(SUM(r.amount), 0)
+            FROM Record r WHERE r.recordType = :recordType
+            GROUP BY r.category
+            """)
+    List<Object[]> sumTotalByCategoryAndType(@Param("recordType") RecordType recordType);
+
+    @Query("""
+            SELECT FUNCTION('TO_CHAR', r.transactionDate, 'YYYY-MM') AS month,
+                   r.recordType,
+                   COALESCE(SUM(r.amount), 0)
+            FROM Record r
+            WHERE r.transactionDate >= :from
+            GROUP BY FUNCTION('TO_CHAR', r.transactionDate, 'YYYY-MM'), r.recordType
+            ORDER BY month ASC
+            """)
+    List<Object[]> globalMonthlyTrends(@Param("from") LocalDate from);
+
+    List<Record> findTop10ByOrderByTransactionDateDesc();
 }

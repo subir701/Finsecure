@@ -59,15 +59,14 @@ public class RecordServiceImpl implements RecordService{
 
     @Override
     public Page<RecordResponse> getRecords(Authentication authentication, Category category, RecordType recordType, LocalDate from, LocalDate to, int page, int size) {
-        Pageable pageable = PageRequest.of(page,size, Sort.by("createdAt").descending());
-        boolean isAdmin = isAdmin(authentication);
+        Pageable pageable = PageRequest.of(page, size, Sort.by("transactionDate").descending());
 
-        log.debug("Fetching records: user={}, isAdmin={}, category={}, recordType={}, page={}, size={}",
-                authentication.getName(), isAdmin, category, recordType, page, size);
+        // Updated Logic: Both Admin AND Analyst are "Power Users"
+        boolean isPowerUser = isAdmin(authentication) || isAnalyst(authentication);
 
-        if(isAdmin){
+        if (isPowerUser) {
             return recordRepository
-                    .findAllByFilters(category, recordType,from, to, pageable)
+                    .findAllByFilters(category, recordType, from, to, pageable)
                     .map(this::toResponse);
         }
 
@@ -122,6 +121,10 @@ public class RecordServiceImpl implements RecordService{
     private User getUser(Authentication auth) {
         return userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> ApiException.notFound("Authenticated user not found"));
+    }
+
+    private boolean isAnalyst(Authentication auth) {
+        return auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ANALYST"));
     }
 
     private boolean isAdmin(Authentication auth) {

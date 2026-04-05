@@ -67,7 +67,7 @@ public class AdminController {
         return ResponseEntity.ok(adminService.updateUserRole(id, role));
     }
 
-    @PatchMapping("/users/delete/{id}")
+    @DeleteMapping("/users/delete/{id}")
     public ResponseEntity<String> softDelete(@PathVariable UUID id){
         return ResponseEntity.ok(adminService.softDeleteUser(id));
     }
