@@ -5,7 +5,9 @@ import com.finSecure.dto.response.RecordResponse;
 import com.finSecure.entity.Category;
 import com.finSecure.entity.RecordType;
 import com.finSecure.service.RecordService;
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -17,23 +19,27 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.UUID;
 
 @RestController
 @RequestMapping("/finsecure/records")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "bearerAuth")
+@Tag(name = "Records", description = "Financial record management (CRUD & Filtering)")
 public class RecordController {
 
     private final RecordService recordService;
 
     /**
-     * POST /api/records
-     * ADMIN only — VIEWERs and ANALYST cannot create records.
+     * POST /finsecure/records
+     * ADMIN only — restricted from VIEWER and ANALYST.
      */
     @PostMapping
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Create a new financial record (ADMIN only)",
+            description = "Saves a new income or expense record to the system. Restricted to users with the ADMIN role."
+    )
     public ResponseEntity<RecordResponse> create(
             @Valid @RequestBody RecordRequest request,
             Authentication auth) {
@@ -41,14 +47,16 @@ public class RecordController {
     }
 
     /**
-     * GET /api/records
-     * All roles can list. ADMIN sees all users' records; others see only their own.
-     * Supports optional filters: category, recordType, from, to, page, size.
-     *
-     * Example: GET /api/records?category=FOOD&recordType=EXPENSE&from=2025-01-01T00:00:00&page=0&size=10
+     * GET /finsecure/records
+     * ADMIN and ANALYST only.
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole( 'ANALYST', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN')")
+    @Operation(
+            summary = "List all records with dynamic filtering (ADMIN, ANALYST)",
+            description = "Retrieves a paginated list of financial records. Allows filtering by category, record type, and date range. " +
+                    "Provides the system-wide oversight required for administrative and analytical review."
+    )
     public ResponseEntity<Page<RecordResponse>> getAll(
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) RecordType recordType,
@@ -61,11 +69,14 @@ public class RecordController {
     }
 
     /**
-     * GET /api/records/{id}
-     * All roles. Users can only fetch their own records; ADMIN can fetch any.
+     * GET /finsecure/records/{id}
      */
     @GetMapping("/{id}")
-    @PreAuthorize("hasAnyRole('VIEWER', 'ANALYST', 'ADMIN')")
+    @PreAuthorize("hasAnyRole('ANALYST', 'ADMIN')")
+    @Operation(
+            summary = "Get record details by ID (ADMIN, ANALYST)",
+            description = "Fetches a single financial record using its unique UUID. Accessible only to high-privilege roles."
+    )
     public ResponseEntity<RecordResponse> getById(
             @PathVariable UUID id,
             Authentication auth) {
@@ -73,11 +84,14 @@ public class RecordController {
     }
 
     /**
-     * PUT /api/records/{id}
-     * ADMIN (any record).
+     * PUT /finsecure/records/{id}
      */
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Update an existing record (ADMIN only)",
+            description = "Modifies the details of a specific financial record. Changes to amounts or categories are restricted to the ADMIN role."
+    )
     public ResponseEntity<RecordResponse> update(
             @PathVariable UUID id,
             @Valid @RequestBody RecordRequest request,
@@ -86,11 +100,14 @@ public class RecordController {
     }
 
     /**
-     * DELETE /api/records/{id}
-     * ADMIN (any record).
+     * DELETE /finsecure/records/{id}
      */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
+    @Operation(
+            summary = "Delete a record (ADMIN only)",
+            description = "Permanently removes a record from the database. This action is destructive and limited to the ADMIN role."
+    )
     public ResponseEntity<String> delete(
             @PathVariable UUID id,
             Authentication auth) {

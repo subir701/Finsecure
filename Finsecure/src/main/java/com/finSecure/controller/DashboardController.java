@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/dashboard")
+@RequestMapping("/finsecure/dashboard")
 @RequiredArgsConstructor
 @Tag(name = "Dashboard", description = "Analytics and summary endpoints")
 @SecurityRequirement(name = "bearerAuth")
