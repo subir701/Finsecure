@@ -61,7 +61,6 @@ public class RecordServiceImpl implements RecordService{
     public Page<RecordResponse> getRecords(Authentication authentication, Category category, RecordType recordType, LocalDate from, LocalDate to, int page, int size) {
         Pageable pageable = PageRequest.of(page, size, Sort.by("transactionDate").descending());
 
-        // Updated Logic: Both Admin AND Analyst are "Power Users"
         boolean isPowerUser = isAdmin(authentication) || isAnalyst(authentication);
 
         if (isPowerUser) {
@@ -140,7 +139,6 @@ public class RecordServiceImpl implements RecordService{
         }
     }
 
-    /** Only the owner or an Admin may mutate a record. */
     private void assertOwnerOrAdmin(Record record, Authentication auth) {
         if (!isAdmin(auth) && !record.getUser().getEmail().equals(auth.getName())) {
             log.warn("Access denied: user={} attempted to modify record={} owned by {}",

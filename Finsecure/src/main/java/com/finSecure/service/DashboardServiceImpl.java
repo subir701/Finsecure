@@ -220,12 +220,4 @@ public class DashboardServiceImpl implements DashboardService {
                 record.getCreatedAt()
         );
     }
-
-    private boolean isAdmin(Authentication auth) {
-        return auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ADMIN"));
-    }
-
-    private boolean isAnalyst(Authentication auth) {
-        return auth.getAuthorities().contains(new SimpleGrantedAuthority("ROLE_ANALYST"));
-    }
 }

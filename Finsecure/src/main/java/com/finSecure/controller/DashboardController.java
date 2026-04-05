@@ -35,7 +35,7 @@ public class DashboardController {
     @GetMapping("/my/categories")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(
-            summary = "My category breakdown — income and expenses by category (all roles)",
+            summary = "My category breakdown — income and expenses by category",
             description = "Returns category-wise totals scoped to the authenticated user."
     )
     public ResponseEntity<CategorySummaryResponse> getMyCategorySummary(Authentication auth) {

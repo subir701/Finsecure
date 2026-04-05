@@ -48,7 +48,7 @@ public class RecordController {
      * Example: GET /api/records?category=FOOD&recordType=EXPENSE&from=2025-01-01T00:00:00&page=0&size=10
      */
     @GetMapping
-    @PreAuthorize("hasAnyRole('VIEWER', 'ANALYST', 'ADMIN')")
+    @PreAuthorize("hasAnyRole( 'ANALYST', 'ADMIN')")
     public ResponseEntity<Page<RecordResponse>> getAll(
             @RequestParam(required = false) Category category,
             @RequestParam(required = false) RecordType recordType,
